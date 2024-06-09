@@ -1,0 +1,12 @@
+[package]
+name = "add_replay_gain_to_files"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+configparser = "3.0.4"
+notify = "6.1.1"
+notify-debouncer-full = "0.3.1"
+notify-debouncer-mini = "0.4.1"
