@@ -1,11 +1,13 @@
 use std::path::{Path, PathBuf};
-use std::process::{exit};
+use std::process::exit;
 use std::time::Duration;
 use std::process::Command;
 
 use notify::{RecursiveMode, Watcher};
 use notify::event::EventKind;
 use notify_debouncer_full::new_debouncer;
+
+use clap::Parser;
 
 mod config;
 
@@ -14,8 +16,16 @@ enum FileType {
     MP3
 }
 
+#[derive(Parser, Debug)]
+#[command(version = "1.0", about = "Add replay gain to files", long_about = None)]
+struct Args {
+    #[arg(short = 'c', long = "config")]
+    config_path: String,
+}
+
 fn main() {
-    let app_config = config::Config::parse("config.ini");
+    let args = Args::parse();
+    let app_config = config::Config::parse(&args.config_path);
 
     if app_config.is_none() {
         eprintln!("Failed to parse config! Exiting!");
