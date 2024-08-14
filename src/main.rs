@@ -52,20 +52,27 @@ fn main() {
                     .iter()
                     .for_each(|event| match event.kind {
                         EventKind::Create(_) => {
+                            println!("{:?}", event.paths);
                             let path = &event.paths[0];
-                            
-                            let path_str = path.to_str().unwrap();
-                            
-                             println!("A new file was created! Path: {:?}", &path_str);
-                            
-                            if path_str.ends_with(".mp3"){
-                                run_audio_normalizer(path, &app_config, FileType::MP3);
-                                
-                            } else if path_str.ends_with(".flac"){
-                                run_audio_normalizer(path, &app_config, FileType::FLAC);
-                                
+
+                            if path.is_dir(){
+                                println!("Found directory {:?}", path.to_str());
+
+                                let files = std::fs::read_dir(path).unwrap();
+
+                                for file in files {
+                                    match file {
+                                        Ok(file) => {
+                                            println!("Processing: {:?}", file.path().to_str());
+                                            handle_file(&file.path(), &app_config);
+                                        }
+                                        Err(e) => {
+                                            eprintln!("Error: {}", e);
+                                        }
+                                    };
+                                }
                             } else {
-                                println!("Skipping file '{}'! Not a .flac or .mp3!", &path_str);
+                                handle_file(&path, &app_config)
                             }
                         },
                         
@@ -77,6 +84,23 @@ fn main() {
 
             Err(e) => eprintln!("Event error: {e:?}"),
         }
+    }
+}
+
+fn handle_file(path: &PathBuf, app_config: &config::Config){
+
+    let path_str = path.to_str().unwrap();
+
+     println!("A new file was created! Path: {:?}", &path_str);
+
+    if path_str.ends_with(".mp3"){
+        run_audio_normalizer(path, &app_config, FileType::MP3);
+        
+    } else if path_str.ends_with(".flac"){
+        run_audio_normalizer(path, &app_config, FileType::FLAC);
+        
+    } else {
+        println!("Skipping file '{}'! Not a .flac or .mp3!", &path_str);
     }
 }
 
