@@ -46,45 +46,45 @@ fn main() {
         .unwrap();
 
     for result in rx {
-        match result {
-            Ok(events) => {
-                events
-                    .iter()
-                    .for_each(|event| match event.kind {
-                        EventKind::Create(_) => {
-                            println!("{:?}", event.paths);
-                            let path = &event.paths[0];
+      match result {
+        Ok(events) => {
+            events
+              .iter()
+              .for_each(|event| match event.kind {
+                  EventKind::Create(_) => {
+                    println!("{:?}", event.paths);
+                    let path = &event.paths[0];
 
-                            if path.is_dir(){
-                                println!("Found directory {:?}", path.to_str());
+                    if path.is_dir(){
+                      println!("Found directory {:?}", path.to_str());
 
-                                let files = std::fs::read_dir(path).unwrap();
+                      let files = std::fs::read_dir(path).unwrap();
 
-                                for file in files {
-                                    match file {
-                                        Ok(file) => {
-                                            println!("Processing: {:?}", file.path().to_str());
-                                            handle_file(&file.path(), &app_config);
-                                        }
-                                        Err(e) => {
-                                            eprintln!("Error: {}", e);
-                                        }
-                                    };
-                                }
-                            } else {
-                                handle_file(&path, &app_config)
-                            }
-                        },
-                        
-                        _ => {
-                            
-                        }
-                    })
-            }
-
-            Err(e) => eprintln!("Event error: {e:?}"),
+                      for file in files {
+                        match file {
+                          Ok(file) => {
+                            println!("Processing: {:?}", file.path().to_str());
+                            handle_file(&file.path(), &app_config);
+                          }
+                          Err(e) => {
+                            eprintln!("Error: {}", e);
+                          }
+                        };
+                      }
+                    } else {
+                        handle_file(&path, &app_config)
+                    }
+                  },
+                  
+                  _ => {
+                      
+                  }
+              })
         }
+
+        Err(e) => eprintln!("Event error: {e:?}"),
     }
+  }
 }
 
 fn handle_file(path: &PathBuf, app_config: &config::Config){
