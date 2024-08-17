@@ -3,6 +3,8 @@ use std::process::exit;
 use std::time::Duration;
 use std::process::Command;
 
+use futures::stream::{self, StreamExt};
+
 use notify::{RecursiveMode, Watcher};
 use notify::event::EventKind;
 use notify_debouncer_full::new_debouncer;
@@ -12,6 +14,7 @@ use clap::Parser;
 mod config;
 
 enum FileType {
+    Empty,
     FLAC,
     MP3
 }
@@ -23,7 +26,8 @@ struct Args {
     config_path: String,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
     let app_config = config::Config::parse(&args.config_path);
 
@@ -46,70 +50,94 @@ fn main() {
         .unwrap();
 
     for result in rx {
+      let app_config_clone = app_config.clone();
       match result {
         Ok(events) => {
-            events
-              .iter()
-              .for_each(|event| match event.kind {
-                  EventKind::Create(_) => {
-                    println!("{:?}", event.paths);
-                    let path = &event.paths[0];
+        
+          let _ = stream::iter(events).for_each_concurrent(None, | event | {
+            let app_config_clone_clone = app_config_clone.clone();
+            async move {
+                match event.kind {
+                    EventKind::Create(_) => {
+                        println!("{:?}", event.paths);
+                        let path = &event.paths[0];
 
-                    if path.is_dir(){
-                      println!("Found directory {:?}", path.to_str());
 
-                      let files = std::fs::read_dir(path).unwrap();
+                        if path.is_dir(){
+                          println!("Found directory {:?}", path.to_str());
 
-                      for file in files {
-                        match file {
-                          Ok(file) => {
-                            println!("Processing: {:?}", file.path().to_str());
-                            handle_file(&file.path(), &app_config);
+                          let files = std::fs::read_dir(path).unwrap();
+
+                          for file in files {
+                            match file {
+                              Ok(file) => {
+                                println!("Processing: {:?}", file.path().to_str());
+                                handle_file(&file.path(), &app_config_clone_clone).await;
+                              }
+                              Err(e) => {
+                                eprintln!("Error: {}", e);
+                              }
+                            };
                           }
-                          Err(e) => {
-                            eprintln!("Error: {}", e);
-                          }
-                        };
-                      }
-                    } else {
-                        handle_file(&path, &app_config)
+                        } else {
+                            handle_file(&path, &app_config_clone_clone).await;
+                        }
                     }
-                  },
-                  
-                  _ => {
-                      
-                  }
-              })
-        }
 
+                    _ => {}
+                }
+            }
+          }).await;
+        }
         Err(e) => eprintln!("Event error: {e:?}"),
     }
   }
 }
 
-fn handle_file(path: &PathBuf, app_config: &config::Config){
+async fn handle_file(path: &PathBuf, app_config: &config::Config){
 
     let path_str = path.to_str().unwrap();
 
      println!("A new file was created! Path: {:?}", &path_str);
 
-    if path_str.ends_with(".mp3"){
-        run_audio_normalizer(path, &app_config, FileType::MP3);
-        
-    } else if path_str.ends_with(".flac"){
-        run_audio_normalizer(path, &app_config, FileType::FLAC);
-        
-    } else {
-        println!("Skipping file '{}'! Not a .flac or .mp3!", &path_str);
+    let mut successful: bool = run_audio_normalizer(path, &app_config); 
+
+    if successful {
+        return;
+    }
+
+    let interval_steps = vec![5, 10, 30, 60, 120, 300];
+
+
+    for interval in interval_steps.iter() {
+      println!("Trying to run the audio normalizer again in {} seconds!", interval);
+      tokio::time::sleep(Duration::from_secs(*interval)).await;
+      successful = run_audio_normalizer(path, &app_config);
+
+      if successful {
+        return;
+      }
     }
 }
 
-fn run_audio_normalizer(path: &PathBuf, config: &config::Config, file_type: FileType){
+fn run_audio_normalizer(path: &PathBuf, config: &config::Config) -> bool {
     // https://bbs.archlinux.org/viewtopic.php?id=125734
     
     let binary: &String;
     let flags: &String;
-    
+
+    let file_type: FileType;
+
+    let path_str = path.to_str().unwrap();
+
+    if path_str.ends_with(".flac") {
+      file_type = FileType::FLAC;
+    } else if path_str.ends_with(".mp3") {
+      file_type = FileType::MP3;
+    } else {
+      file_type = FileType::Empty;
+    }
+
     match file_type {
         FileType::FLAC => {
             binary = &config.metaflac_path;
@@ -119,6 +147,11 @@ fn run_audio_normalizer(path: &PathBuf, config: &config::Config, file_type: File
         FileType::MP3 => {
             binary = &config.mp3gain_path;
             flags = &config.mp3gain_flags;
+        }
+         
+        _ => {
+          println!("File is not a flac or a mp3 file, skipping!");
+          return true;
         }
     }
     
@@ -137,17 +170,18 @@ fn run_audio_normalizer(path: &PathBuf, config: &config::Config, file_type: File
 
     if output.is_err() {
         eprintln!("Failed to run {:?}!", command.get_program());
-        return;
+        return false;
     }
 
     let output_unwrapped = output.unwrap();
 
     if !output_unwrapped.status.success() {
         eprintln!("Could not add replay-gain to {} because: {:?}", &path.to_str().unwrap(), String::from_utf8(output_unwrapped.stderr));
-        return;
+        return false;
     }
 
     // println!("Command stdout: {:?}\nCommand stderr: {:?}\nCommand exit code: {:?}", String::from_utf8(output_unwrapped.stdout), String::from_utf8(output_unwrapped.stderr), output_unwrapped.status.code());
 
     println!("Added replay-gain to {}", &path.to_str().unwrap());
+    return true;
 }

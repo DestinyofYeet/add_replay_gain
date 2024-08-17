@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.15", features = ["derive"] }
 configparser = "3.0.4"
+futures = "0.3.30"
 notify = "6.1.1"
 notify-debouncer-full = "0.3.1"
 notify-debouncer-mini = "0.4.1"
+tokio = { version = "1.39.2", features = ["full"] }

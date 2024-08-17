@@ -1,8 +1,9 @@
 use configparser::ini::Ini;
-use std::fs::{File};
+use std::fs::File;
 use std::io::Read;
 use std::process::exit;
 
+#[derive(Debug, Clone)]
 pub struct Config {
     pub watch_path: String,
 
@@ -76,6 +77,4 @@ impl Config {
         
         return value.unwrap();
     }
-    
-    
 }
