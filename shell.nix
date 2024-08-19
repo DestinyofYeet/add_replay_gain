@@ -4,7 +4,7 @@ pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
     rustc 
     cargo
-    openssl.dev
+    openssl
     pkg-config
   ];
 }
