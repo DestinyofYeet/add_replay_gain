@@ -12,6 +12,8 @@ pub struct Config {
 
     pub mp3gain_path: String,
     pub mp3gain_flags: String,
+
+    pub uptime_url: String,
 }
 
 impl Config {
@@ -62,6 +64,8 @@ impl Config {
                     
                     mp3gain_path: Self::get_config("MP3", "mp3gain_bin", &config),
                     mp3gain_flags: Self::get_config("MP3", "mp3gain_flags", &config),
+
+                    uptime_url: Self::get_config("UPTIME", "uptime_url", &config)
                 });
             }
         }

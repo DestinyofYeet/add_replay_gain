@@ -11,6 +11,8 @@ use notify_debouncer_full::new_debouncer;
 
 use clap::Parser;
 
+use reqwest::Client;
+
 mod config;
 
 enum FileType {
@@ -37,6 +39,12 @@ async fn main() {
     }
 
     let app_config = app_config.unwrap();
+
+    let uptime_url = app_config.uptime_url.clone();
+
+    tokio::spawn(async move {
+       notify_uptime_service(&uptime_url).await; 
+    });
 
     println!("Watch path is: {}", app_config.watch_path);
 
@@ -184,4 +192,35 @@ fn run_audio_normalizer(path: &PathBuf, config: &config::Config) -> bool {
 
     println!("Added replay-gain to {}", &path.to_str().unwrap());
     return true;
+}
+
+
+async fn notify_uptime_service(url: &String){
+    let client = Client::new();
+    
+    println!("Notify url is {}", url);
+
+    loop {
+        let request_result = client.get(url).build();
+        
+        if request_result.is_err() {
+            eprintln!("Failed to create a request!");
+        } else {
+            let request = request_result.unwrap();
+
+            let response_result = client.execute(request).await;
+            
+            if response_result.is_err() {
+                eprintln!("Failed to notify uptime service!")
+            } else {
+                let response = response_result.unwrap();
+                
+                if response.status() != 200 {
+                    eprintln!("Failed to notify uptime service! Status code: {}", response.status());
+                }
+            }
+        }
+        
+        tokio::time::sleep(Duration::from_secs(50)).await;
+    }
 }
