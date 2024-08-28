@@ -9,7 +9,7 @@
 
     packages.x86_64-linux.add-replay-gain = nixpkgs.callPackage ./pkg.nix {};
 
-    nixosModules.add-replay-gain = import ./module.nix;
+    nixosModules.add-replay-gain = import ./module.nix self;
     
   };
 }
