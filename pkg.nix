@@ -1,20 +1,22 @@
 { 
   rustPlatform,
   lib,
-  fetchzip,
+  fetchFromGitHub,
   pkgs,
 }: 
 
 rustPlatform.buildRustPackage rec {
   pname = "add_replay_gain_to_files";
-  version = "1.4";
+  version = "1.5";
 
-  src = fetchzip {
-    url = "https://github.com/DestinyofYeet/add_replay_gain/archive/d6f7d191a98e003e18e8657ccab5cd8f221715d5.zip";
-    hash = "sha256-0YoXg0vYpjDezEJPkjmnp/UY57TcZ8JAVgYn0XNvfts=";
+  src = fetchFromGitHub {
+    owner = "DestinyofYeet";
+    repo = "add_replay_gain";
+    rev = "548e79a0277085993a594f441457a849eed91cf8";
+    hash = "sha256-n8MGTUJMm2pjLf6nURt77cznHNYLpKtHI1j9x65wK/o=";
   };
 
-  cargoHash = "sha256-1kylTyFGZHO5ypHw1a9Ma8G30ziMKkSRQdYsY23RIIs=";
+  cargoHash = "sha256-WyG0/qAhMf6BGm2ykKF954RvB9hkWXnT4DNqICLSKzs=";
 
   nativeBuildInputs = with pkgs; [
     pkg-config
