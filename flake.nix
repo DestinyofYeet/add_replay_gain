@@ -6,27 +6,10 @@
   };
 
   outputs = { self, nixpkgs }: let
-  
-  forAllSystems = function:
-    nixpkgs.lib.genAttrs [
-      "x86_64-linux"
-      "aarch64-linux"
-    ]
-    (system: function (import nixpkgs { inherit system; }));
-
-  mkMultiple = function: 
-    nixpkgs.lib.genAttrs [
-      "add-replay-gain"
-      "default"
-    ] (name: function (name));
+  pkgs = import nixpkgs { system = "x86_64-linux"; }; 
 in {
 
-    packages = forAllSystems (pkgs: 
-      {
-        add-replay-gain = pkgs.callPackage ./pkg.nix {};
-        default = pkgs.callPackage ./pkg.nix {};
-      }
-    );
+    packages.x86_64-linux.add-replay-gain = pkgs.callPackage ./pkg.nix {};
 
     nixosModules.add-replay-gain = import ./module.nix self;
 
