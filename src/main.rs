@@ -188,12 +188,30 @@ fn run_audio_normalizer(path: &PathBuf, config: &config::Config) -> bool {
         return false;
     }
 
+    let mut remove_comments_command = Command::new(binary);
+
+    remove_comments_command.arg("--remove-tag=comment");
+    remove_comments_command.arg(path);
+
+    println!("Running command {:?} with {:?} args", remove_comments_command.get_program(), remove_comments_command.get_args());
+
+    let remove_comments_output = remove_comments_command.output();
+
+    if remove_comments_output.is_err() {
+        eprintln!("Failed to run command to remove comments: {:?}!", remove_comments_command.get_program());
+    }
+
+    let unwrapped_remove_comments_output = remove_comments_output.unwrap();
+
+    if !unwrapped_remove_comments_output.status.success(){
+        eprintln!("Failed to remove comments from {} because {:?}", &path.to_str().unwrap(), String::from_utf8(unwrapped_remove_comments_output.stderr));
+    }
+
     // println!("Command stdout: {:?}\nCommand stderr: {:?}\nCommand exit code: {:?}", String::from_utf8(output_unwrapped.stdout), String::from_utf8(output_unwrapped.stderr), output_unwrapped.status.code());
 
     println!("Added replay-gain to {}", &path.to_str().unwrap());
     return true;
 }
-
 
 async fn notify_uptime_service(url: &String){
     let client = Client::new();
