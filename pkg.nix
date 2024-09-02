@@ -7,7 +7,7 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "add_replay_gain_to_files";
-  version = "1.5";
+  version = "1.6";
 
   src = fetchFromGitHub {
     owner = "DestinyofYeet";

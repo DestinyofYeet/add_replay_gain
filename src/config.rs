@@ -14,6 +14,9 @@ pub struct Config {
     pub mp3gain_flags: String,
 
     pub uptime_url: String,
+
+    pub enable_replay_gain: bool,
+    pub enable_remove_comment: bool,
 }
 
 impl Config {
@@ -35,27 +38,6 @@ impl Config {
                     Ok(_) => {}
                 };
                 
-                let watch_path = config.get("DEFAULT", "watch_path");
-                
-                if watch_path.is_none(){
-                    eprintln!("Could not find key 'watch_path' in section 'DEFAULT'!");
-                    return None;
-                }
-                
-                let metaflac_path = config.get("FLAC", "metaflac_bin");
-                
-                if metaflac_path.is_none(){
-                    eprintln!("Could not find key 'metaflac_bin' in section 'FLAC'!");
-                    return None;
-                }
-                
-                let metaflac_flags = config.get("FLAC", "metaflac_flags");
-                
-                if metaflac_flags.is_none(){
-                    eprintln!("Could not find key 'metaflac_flags' in section 'FLAC'!");
-                    return None;
-                }
-
                 return Some(Config {
                     watch_path: Self::get_config("DEFAULT", "watch_path", &config),
 
@@ -65,7 +47,10 @@ impl Config {
                     mp3gain_path: Self::get_config("MP3", "mp3gain_bin", &config),
                     mp3gain_flags: Self::get_config("MP3", "mp3gain_flags", &config),
 
-                    uptime_url: Self::get_config("UPTIME", "uptime_url", &config)
+                    uptime_url: Self::get_config("UPTIME", "uptime_url", &config),
+
+                    enable_replay_gain: Self::get_config_bool("ENABLE", "replay_gain", &config).unwrap(),
+                    enable_remove_comment: Self::get_config_bool("ENABLE", "remove_comment", &config).unwrap(),
                 });
             }
         }
@@ -79,6 +64,17 @@ impl Config {
             exit(1);
         }
         
+        return value.unwrap();
+    }
+
+    fn get_config_bool(section: &str, key: &str, config: &Ini) -> Option<bool> {
+        let value = config.getbool(section, key);
+
+        if value.is_err() {
+            eprintln!("Could not find key '{}' in section '{}'!", key, section);
+            exit(1);
+        }
+
         return value.unwrap();
     }
 }

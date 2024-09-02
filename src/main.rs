@@ -162,54 +162,72 @@ fn run_audio_normalizer(path: &PathBuf, config: &config::Config) -> bool {
           return true;
         }
     }
-    
-    println!("Running: {} {} {:?}", binary, flags, &path);
-    let mut command = Command::new(binary);
-    
-    let split = flags.split(" ");
-            
-    for value in split.into_iter(){
-        command.arg(value);
+
+    if config.enable_replay_gain {
+
+        println!("Running: {} {} {:?}", binary, flags, &path);
+        let mut command = Command::new(binary);
+        
+        let split = flags.split(" ");
+                
+        for value in split.into_iter(){
+            command.arg(value);
+        }
+        
+        command.arg(path);
+        
+        let output = command.output();
+
+        if output.is_err() {
+            eprintln!("Failed to run {:?}!", command.get_program());
+            return false;
+        }
+
+        let output_unwrapped = output.unwrap();
+
+        if !output_unwrapped.status.success() {
+            eprintln!("Could not add replay-gain to {} because: {:?}", &path.to_str().unwrap(), String::from_utf8(output_unwrapped.stderr));
+            return false;
+        }
+
+        println!("Added replay-gain to {}", &path.to_str().unwrap());
+    } else {
+        println!("Skipping adding replay gain: Disabled in config");
     }
     
-    command.arg(path);
-    
-    let output = command.output();
 
-    if output.is_err() {
-        eprintln!("Failed to run {:?}!", command.get_program());
-        return false;
+    if config.enable_remove_comment {
+
+        match file_type {
+            FileType::FLAC => {
+                let mut remove_comments_command = Command::new(binary);
+
+                remove_comments_command.arg("--remove-tag=comment");
+                remove_comments_command.arg(path);
+
+                // println!("Running command {:?} with {:?} args", remove_comments_command.get_program(), remove_comments_command.get_args());
+
+                let remove_comments_output = remove_comments_command.output();
+
+                if remove_comments_output.is_err() {
+                    eprintln!("Failed to run command to remove comments: {:?}!", remove_comments_command.get_program());
+                }
+
+                let unwrapped_remove_comments_output = remove_comments_output.unwrap();
+
+                if !unwrapped_remove_comments_output.status.success(){
+                    eprintln!("Failed to remove comments from {} because {:?}", &path.to_str().unwrap(), String::from_utf8(unwrapped_remove_comments_output.stderr));
+                }
+                
+                println!("Removed comments from {}", &path.to_str().unwrap());
+            }
+
+            _ => {
+                eprintln!("Removing comment from this file is not supported: '{}'", &path.to_str().unwrap());
+            }
+        }
+
     }
-
-    let output_unwrapped = output.unwrap();
-
-    if !output_unwrapped.status.success() {
-        eprintln!("Could not add replay-gain to {} because: {:?}", &path.to_str().unwrap(), String::from_utf8(output_unwrapped.stderr));
-        return false;
-    }
-
-    let mut remove_comments_command = Command::new(binary);
-
-    remove_comments_command.arg("--remove-tag=comment");
-    remove_comments_command.arg(path);
-
-    println!("Running command {:?} with {:?} args", remove_comments_command.get_program(), remove_comments_command.get_args());
-
-    let remove_comments_output = remove_comments_command.output();
-
-    if remove_comments_output.is_err() {
-        eprintln!("Failed to run command to remove comments: {:?}!", remove_comments_command.get_program());
-    }
-
-    let unwrapped_remove_comments_output = remove_comments_output.unwrap();
-
-    if !unwrapped_remove_comments_output.status.success(){
-        eprintln!("Failed to remove comments from {} because {:?}", &path.to_str().unwrap(), String::from_utf8(unwrapped_remove_comments_output.stderr));
-    }
-
-    // println!("Command stdout: {:?}\nCommand stderr: {:?}\nCommand exit code: {:?}", String::from_utf8(output_unwrapped.stdout), String::from_utf8(output_unwrapped.stderr), output_unwrapped.status.code());
-
-    println!("Added replay-gain to {}", &path.to_str().unwrap());
     return true;
 }
 
