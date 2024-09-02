@@ -27,8 +27,16 @@ in {
       };
 
       features = {
-        add-replay-gain = mkEnableOption "to add replay gain to files";
-        remove-comments = mkEnableOption "to remove comments from newly added files";
+        add-replay-gain = mkOption {
+          type = types.enum [ "true" "false" ];
+          default = "true";
+          description = "Wether to actually add replay gain to files";
+        };
+        remove-comments = mkOption {
+          type = types.enum [ "true" "false" ];
+          default = "true";
+          description = "Wether to remove comments from files";
+        };
       };
 
       user = mkOption {
