@@ -26,6 +26,11 @@ in {
         description = "Flags to add to mp3Gain";
       };
 
+      enable = {
+        add-replay-gain = mkEnableOption "to add replay gain to files";
+        remove-comments = mkEnableOption "to remove comments from newly added files";
+      };
+
       user = mkOption {
         type = types.str;
         default = "add-replay-gain";
@@ -63,6 +68,10 @@ in {
       config-file = pkgs.writeText "config.toml" ''
         [DEFAULT]
         watch_path = ${cfg.watchDirectory}
+
+        [ENABLE]
+        replay_gain = ${cfg.enable.add-replay-gain}
+        remove_comment = ${cfg.enable.remove-comments}
 
         [FLAC]
         metaflac_bin = ${pkgs.flac}/bin/metaflac
