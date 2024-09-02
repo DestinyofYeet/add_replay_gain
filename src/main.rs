@@ -40,6 +40,8 @@ async fn main() {
 
     let app_config = app_config.unwrap();
 
+    println!("Configuration: \n{:#?}", app_config);
+
     let uptime_url = app_config.uptime_url.clone();
 
     tokio::spawn(async move {
