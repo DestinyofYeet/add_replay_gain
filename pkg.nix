@@ -7,16 +7,16 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "add_replay_gain_to_files";
-  version = "1.6";
+  version = "1.7";
 
   src = fetchFromGitHub {
     owner = "DestinyofYeet";
     repo = "add_replay_gain";
-    rev = "7c47e72cdef542b1f162c6fa926be98c2abf67b3";
-    hash = "sha256-D3LsUZpu+MRlCyaNIIIsosrMmxQRysqX4oi5aAVDvPU=";
+    rev = "fbcee0534694ad057bdc273cd5b7476ad718a13c";
+    hash = "sha256-N8Bkg5IuIkQnQhTUbKEEzaCZMLlHxZqTnDJ6CR6wxmI=";
   };
 
-  cargoHash = "sha256-oBoaUVjz2DpNvQzoADW9SoQ1vmYFqiAqbn2T5LzzPPs=";
+  cargoHash = "sha256-e0bgEAmJNKRWVjSMlb3qPIjjk16UDNGbpBGKXzWKHbE=";
 
   nativeBuildInputs = with pkgs; [
     pkg-config
