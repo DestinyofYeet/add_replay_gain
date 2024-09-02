@@ -26,7 +26,7 @@ in {
         description = "Flags to add to mp3Gain";
       };
 
-      enable = {
+      features = {
         add-replay-gain = mkEnableOption "to add replay gain to files";
         remove-comments = mkEnableOption "to remove comments from newly added files";
       };
@@ -70,8 +70,8 @@ in {
         watch_path = ${cfg.watchDirectory}
 
         [ENABLE]
-        replay_gain = ${cfg.enable.add-replay-gain}
-        remove_comment = ${cfg.enable.remove-comments}
+        replay_gain = ${cfg.features.add-replay-gain}
+        remove_comment = ${cfg.features.remove-comments}
 
         [FLAC]
         metaflac_bin = ${pkgs.flac}/bin/metaflac
