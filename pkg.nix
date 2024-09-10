@@ -30,7 +30,7 @@ rustPlatform.buildRustPackage rec {
     license = licenses.gpl3;
     # maintainers = [ maintainers.DestinyofYeet ];
     platforms = [
-      "x86-64-linux"
+      "x86_64-linux"
       "aarch64-linux"
     ];
   };
