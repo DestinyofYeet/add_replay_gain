@@ -29,6 +29,9 @@ rustPlatform.buildRustPackage rec {
     description = "A tool to automatically add replay gain to mp3 and flac files";
     license = licenses.gpl3;
     # maintainers = [ maintainers.DestinyofYeet ];
-    platforms = platforms.all;
+    platforms = [
+      "x86-64-linux"
+      "aarch64-linux"
+    ];
   };
 }
