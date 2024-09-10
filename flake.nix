@@ -12,7 +12,7 @@
     nixpkgs.lib.genAttrs [
       "x86_64-linux"
       "aarch64-linux"
-    ] (system: function (import nixpkgs { inherit system;  }));
+    ] (system: function (import nixpkgs { inherit system; allowUnsupportedSystem = true; }));
 
 in {
 
