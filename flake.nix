@@ -8,19 +8,8 @@
   outputs = { self, nixpkgs }: let
   pkgs = import nixpkgs { system = "x86_64-linux"; }; 
 
-  forAllSystems = function:
-    nixpkgs.lib.genAttrs [
-      "x86_64-linux"
-      "aarch64-linux"
-    ] (system: function (import nixpkgs { inherit system; allowUnsupportedSystem = true; }));
-
 in {
-
-    packages = forAllSystems (pkgs:
-      {
-        add-replay-gain = pkgs.callPackage ./pkg.nix {};
-      }
-    );
+    packages.x86_64-linux.add-replay-gain = pkgs.callPackage ./pkg.nix {};
 
     nixosModules.add-replay-gain = import ./module.nix self;
 
