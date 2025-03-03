@@ -1,6 +1,6 @@
 { rustPlatform, lib, fetchFromGitHub, pkgs, }:
 
-rustPlatform.buildRustPackage rec {
+rustPlatform.buildRustPackage {
   pname = "add_replay_gain_to_files";
   version = "1.7";
 
@@ -13,7 +13,7 @@ rustPlatform.buildRustPackage rec {
 
   src = ./.;
 
-  cargoHash = "sha256-e0bgEAmJNKRWVjSMlb3qPIjjk16UDNGbpBGKXzWKHbE=";
+  cargoHash = "sha256-rn2miFHvfZkWk1dypAdubnf0bMlhwW04Yld127n55HM=";
 
   useFetchCargoVendor = true;
 
